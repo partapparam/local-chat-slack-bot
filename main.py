@@ -14,9 +14,12 @@ app.client.retry_handlers.append(RateLimitErrorRetryHandler(max_retry_count=2))
 
 # Add functionality here later
 @app.event('app_mention')
-def reply_back(client, event, logger):
-    print('\n\n Client:', client.__dict__, '\n\nEvent:', event)
-    
+def reply_back(event, say):
+    print('\n\n say:', say.__dict__, '\n\nEvent:', event)
+    say(text=f'{event.user} We have received your message', channel=event.channel)
+
+
+
 # @app.event("app_home_opened") etc.
 @app.event('app_home_opened')
 def update_home_tab(client, event, logger):
