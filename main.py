@@ -1,7 +1,7 @@
 import os
 # Use the package we installed
 from slack_bolt import App
-from slack_sdk.web import WebClient
+from slack_sdk.web import WebClient, SlackResponse
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ import json
 
 TOKEN = os.getenv('TOKEN')
 AUTH = os.getenv('AUTH')
-serpAPI = "http://3.236.218.40:443/iquery"
+URL = os.getenv(key='URL')
 
 # Initialize your app with your bot token and signing secret
 app = App(
@@ -25,28 +25,27 @@ def hit_serp(query, session):
     payload = json.dumps({
  "query": query
 })
-    print(session)
     serp_headers = {
  'token': TOKEN,
  'Content-Type': 'application/json',
  'proxy':'False',
  'session': 'False',
  'Authorization': AUTH}
-    serp_response = requests.request(method="POST", url=serpAPI, headers=serp_headers, data=payload)
+    serp_response = requests.request(method="POST", url=URL, headers=serp_headers, data=payload)
     return json.loads(serp_response._content)
 
 
-@app.event('app_mention')
-def reply_back(event, say):
+@app.event(event='app_mention')
+def reply_back(event, say) -> SlackResponse:
     text = event['text'].split('>')[1]
-    response = hit_serp(text, 'False')
+    response = hit_serp(query=text, session='False')
     answer = json.loads(response['response'])['answer']
-    say(text=f'<@{event["user"]}>, {answer}', channel=event['channel'])
+    return say(text=f'<@{event["user"]}>, {answer}', channel=event['channel'])
 
 
 
 # @app.event("app_home_opened") etc.
-@app.event('app_home_opened')
+@app.event(event='app_home_opened')
 def update_home_tab(client, event, logger):
   print('\n\n\nclient', client.__dict__, '\n\n', event, '\n', logger, '\n\n\n')
   try:
