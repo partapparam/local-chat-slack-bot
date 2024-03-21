@@ -36,13 +36,22 @@ def hit_serp(query, session):
 
 
 @app.event(event='app_mention')
-def reply_back(event, say) -> SlackResponse:
+def reply_back(event, body, respond, say, context, client, message, payload, view) -> SlackResponse:
+    breakpoint()
     text = event['text'].split('>')[1]
     response = hit_serp(query=text, session='False')
     answer = json.loads(response['response'])['answer']
+    thread_ts = event["thread_ts"]
+    conversation_replies = app.client.conversations_replies(channel=event["channel"], ts=thread_ts)
+
+    # Get the thread messages
+    thread_messages = conversation_replies["messages"]
     return say(text=f'<@{event["user"]}>, {answer}', channel=event['channel'])
 
-
+# get files
+# files = client.files_list
+# file_list = files.data['files']
+file_id = 'F06QD203VNJ'
 
 # @app.event("app_home_opened") etc.
 @app.event(event='app_home_opened')
