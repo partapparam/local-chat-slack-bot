@@ -1,6 +1,8 @@
 import os
 # Use the package we installed
 from slack_bolt import App
+from slack_bolt import (Say, Respond, Ack)
+from typing import (Dict, Any)
 from slack_sdk.web import WebClient, SlackResponse
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 import os
@@ -8,15 +10,18 @@ from dotenv import load_dotenv
 load_dotenv()
 import requests
 import json
+import asyncio
 
 TOKEN = os.getenv('TOKEN')
 AUTH = os.getenv('AUTH')
 URL = os.getenv(key='URL')
+SLACK_BOT_TOKEN = os.getenv(key='SLACK_BOT_TOKEN')
+SLACK_SIGNING_SECRET=os.getenv(key='SLACK_SIGNING_SECRET')
 
 # Initialize your app with your bot token and signing secret
 app = App(
-    token=os.environ.get("SLACK_BOT_TOKEN"),
-    signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
+    token=SLACK_BOT_TOKEN,
+    signing_secret=SLACK_SIGNING_SECRET
 )
 app.client.retry_handlers.append(RateLimitErrorRetryHandler(max_retry_count=2))
 
@@ -52,6 +57,25 @@ def reply_back(event, body, respond, say, context, client, message, payload, vie
 # files = client.files_list
 # file_list = files.data['files']
 file_id = 'F06QD203VNJ'
+
+
+@app.command(command='/partap')
+async def handle_modify_bot(ack: Ack, body: Dict[str, Any], respond: Respond, context, client, payload) -> None:
+    await ack()
+    """
+    Handle the /modify-bot command
+    This function modifies the Bots scope and access for questions
+    """
+    channel_id = body['channel_id']
+    trigger_id = body['trigger_id']
+     # Load modify_bot_template.json payload
+    with open(f'./src/templates/file_upload_template.json', 'r') as f:
+        view = json.load(f)
+
+    breakpoint()
+    client.views_open(trigger_id=trigger_id, view=view)
+
+
 
 # @app.event("app_home_opened") etc.
 @app.event(event='app_home_opened')
@@ -105,7 +129,28 @@ def update_home_tab(client, event, logger):
   except Exception as e:
     logger.error(f"Error publishing home tab: {e}")
 
+@app.command('/par')
+def handle_app(ack):
+    ack()
+    print('here')
 
-# Ready? Start your app!
+# # Ready? Start your app!
+# if __name__ == "__main__":
+#     app.start(port=int(os.environ.get("PORT", 3000)))
+
+# Load bot in async mode
+async def start():
+    await app.start(port=int(os.environ.get("PORT", 3000)))
+
 if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 3000)))
+    logger = app.logger
+    try:
+        asyncio.run(start())
+        logger.info('App started.')
+    except KeyboardInterrupt:
+        logger.info('App stopped by user.')
+    except Exception as e:
+        logger.info('App stopped due to error.')
+        logger.error(str(e))
+    finally:
+        logger.info('App stopped.')
