@@ -1,16 +1,21 @@
 import os
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 # Use the package we installed
 from slack_bolt import App
 from slack_bolt import (Say, Respond, Ack)
+from slack_bolt.adapter.flask import SlackRequestHandler
 from typing import (Dict, Any)
 from slack_sdk.web import WebClient, SlackResponse
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
-import os
 from dotenv import load_dotenv
 load_dotenv()
 import requests
 import json
 import asyncio
+from flask import Flask, request 
+
 
 TOKEN = os.getenv('TOKEN')
 AUTH = os.getenv('AUTH')
@@ -24,6 +29,13 @@ app = App(
     signing_secret=SLACK_SIGNING_SECRET,
     raise_error_for_unhandled_request=True
 )
+
+@app.middleware  # or app.use(log_request)
+def log_request(logger, body, next):
+    logger.debug(body)
+    print('middleware')
+    return next()
+
 app.client.retry_handlers.append(RateLimitErrorRetryHandler(max_retry_count=2))
 def here(error, body, logger):
     logger.exception(f"Error: {error}")
@@ -137,11 +149,6 @@ def update_home_tab(client, event, logger):
   except Exception as e:
     logger.error(f"Error publishing home tab: {e}")
 
-@app.command('/par')
-def handle_app(ack):
-    ack()
-    print('here')
-
 # # Ready? Start your app!
 # if __name__ == "__main__":
 #     app.start(port=int(os.environ.get("PORT", 3000)))
@@ -150,15 +157,22 @@ def handle_app(ack):
 async def start():
     await app.start(port=int(os.environ.get("PORT", 3000)))
 
-if __name__ == "__main__":
-    logger = app.logger
-    try:
-        asyncio.run(start())
-        logger.info('App started.')
-    except KeyboardInterrupt:
-        logger.info('App stopped by user.')
-    except Exception as e:
-        logger.info('App stopped due to error.')
-        logger.error(str(e))
-    finally:
-        logger.info('App stopped.')
+# if __name__ == "__main__":
+#     logger = app.logger
+#     try:
+#         asyncio.run(start())
+#         logger.info('App started.')
+#     except KeyboardInterrupt:
+#         logger.info('App stopped by user.')
+#     except Exception as e:
+#         logger.info('App stopped due to error.')
+#         logger.error(str(e))
+#     finally:
+#         logger.info('App stopped.')
+
+# Start flask app for Production App
+flask_app = Flask(__name__)
+handler = SlackRequestHandler(app=app)
+@flask_app.route(rule='/slack/events', methods=['GET', 'POST'])
+def slack_events():
+    return handler.handle(req=request)

@@ -1,0 +1,67 @@
+display_information:
+  name: Test
+features:
+  app_home:
+    home_tab_enabled: true
+    messages_tab_enabled: false
+    messages_tab_read_only_enabled: false
+  bot_user:
+    display_name: Test
+    always_online: true
+  shortcuts:
+    - name: partap-test
+      type: global
+      callback_id: partap_callback
+      description: This will do this
+  slash_commands:
+    - command: /partap-dev
+      url: https://worthy-slightly-cod.ngrok-free.app/slack/events
+      description: Modify the AI bot Settings
+      should_escape: true
+    - command: /par
+      url: https://b9ad-2603-8000-7ff0-6bf0-d1d4-faa2-1963-4e44.ngrok-free.app/slack/command
+      description: Param test
+      should_escape: true
+oauth_config:
+  redirect_urls:
+    - https://worthy-slightly-cod.ngrok-free.app/redirect
+  scopes:
+    user:
+      - admin.apps:write
+    bot:
+      - app_mentions:read
+      - chat:write
+      - files:read
+      - remote_files:read
+      - users.profile:read
+      - channels:history
+      - channels:read
+      - chat:write.customize
+      - chat:write.public
+      - commands
+      - conversations.connect:read
+      - conversations.connect:write
+      - groups:history
+      - groups:read
+      - groups:write
+      - im:history
+      - im:read
+      - im:write
+      - links:read
+      - mpim:history
+      - mpim:read
+      - mpim:write
+      - pins:read
+settings:
+  event_subscriptions:
+    request_url: https://worthy-slightly-cod.ngrok-free.app/slack/events
+    bot_events:
+      - app_home_opened
+      - app_mention
+  interactivity:
+    is_enabled: true
+    request_url: https://worthy-slightly-cod.ngrok-free.app/interactive-endpoint
+    message_menu_options_url: https://worthy-slightly-cod.ngrok-free.app/options-load-endpoint
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: true

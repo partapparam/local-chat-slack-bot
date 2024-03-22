@@ -3,6 +3,8 @@ slack-sdk
 # openai>=0.28.1,<0.29
 tiktoken
 # https://github.com/Yelp/elastalert/issues/2306
-urllib3
+urllib3<2
 python-dotenv
 aiohttp
+flask
+pyyaml
