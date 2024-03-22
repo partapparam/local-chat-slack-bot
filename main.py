@@ -21,10 +21,17 @@ SLACK_SIGNING_SECRET=os.getenv(key='SLACK_SIGNING_SECRET')
 # Initialize your app with your bot token and signing secret
 app = App(
     token=SLACK_BOT_TOKEN,
-    signing_secret=SLACK_SIGNING_SECRET
+    signing_secret=SLACK_SIGNING_SECRET,
+    raise_error_for_unhandled_request=True
 )
 app.client.retry_handlers.append(RateLimitErrorRetryHandler(max_retry_count=2))
+def here(error, body, logger):
+    logger.exception(f"Error: {error}")
+    logger.info(f"Request body: {body}")
+    # breakpoint()
+    print('here')
 
+app.error(func=here)
 
 def hit_serp(query, session):
     payload = json.dumps({
@@ -59,21 +66,22 @@ def reply_back(event, body, respond, say, context, client, message, payload, vie
 file_id = 'F06QD203VNJ'
 
 
-@app.command(command='/partap')
-async def handle_modify_bot(ack: Ack, body: Dict[str, Any], respond: Respond, context, client, payload) -> None:
-    await ack()
+@app.command(command='/partap-dev')
+def handle_modify_bot(ack: Ack, body: Dict[str, Any], respond: Respond, context, client, payload, command) -> None:
     """
     Handle the /modify-bot command
     This function modifies the Bots scope and access for questions
     """
+    ack()
     channel_id = body['channel_id']
     trigger_id = body['trigger_id']
+    print(channel_id, trigger_id)
      # Load modify_bot_template.json payload
     with open(f'./src/templates/file_upload_template.json', 'r') as f:
         view = json.load(f)
-
-    breakpoint()
+    respond(f"{command['text']}")
     client.views_open(trigger_id=trigger_id, view=view)
+    breakpoint()
 
 
 

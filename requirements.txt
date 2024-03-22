@@ -5,3 +5,4 @@ tiktoken
 # https://github.com/Yelp/elastalert/issues/2306
 urllib3
 python-dotenv
+aiohttp
