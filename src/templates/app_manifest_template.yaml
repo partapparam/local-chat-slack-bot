@@ -43,7 +43,6 @@ oauth_config:
       - channels:read
       - chat:write.customize
       - chat:write.public
-      - commands
       - conversations.connect:read
       - conversations.connect:write
       - groups:history

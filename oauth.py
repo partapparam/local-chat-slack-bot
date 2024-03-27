@@ -46,8 +46,11 @@ SLACK_CLIENT_ID = os.getenv(key='SLACK_CLIENT_ID')
 with open(file='./src/templates/scopes.yaml', mode='r') as file:
     config = yaml.safe_load(file) 
 
-def install_store ():
-    breakpoint()
+def install_store (installation):
+    print(installation)
+
+def state_store (*args):
+    print(args)
      
     
 oauth_settings = OAuthSettings(
@@ -55,11 +58,9 @@ oauth_settings = OAuthSettings(
     client_secret=SLACK_CLIENT_SECRET,
     scopes=config['scopes']['bot'],
     user_scopes=config['scopes']['user'],
-    installation_store=FileInstallationStore(base_dir="./data/installations"),
-    state_store=FileOAuthStateStore(expiration_seconds=600, base_dir="./data/states"),
-    redirect_uri=None,
+    installation_store=install_store,
+    state_store=state_store,
     install_path="/slack/install",
-    redirect_uri_path="/slack/oauth_redirect",
     callback_options=callback_options,
 )
 
@@ -164,6 +165,11 @@ handler = SlackRequestHandler(app=app)
 def slack_events():
     return handler.handle(req=request)
 
+@flask_app.route('/slack/install/orgadmin')
+def slack_admin_install():
+    print('admin install')
+    return custom_routes.user_scopes_install_html
+
 @flask_app.route('/slack/install')
 def slack_install():
     print('getting slack install')
@@ -178,24 +184,27 @@ installation_store = FileInstallationStore(base_dir="./data")
 @flask_app.route('/slack/oauth_redirect')
 def slack_oauth():
     # Retrieve the auth code and state from the request params
-    if "code" in request.args:
-        # Verify the state parameter
-        if state_store.consume(request.args["state"]):
+    print(request.args)
+    breakpoint()
+    if request.args['code']:
+    #     # Verify the state parameter
+        # if state_store.consume(request.args["state"]):
+          if request.args['state']:
             client = WebClient()  # no prepared token needed for this
-            # Complete the installation by calling oauth.v2.access API method
+    #         # Complete the installation by calling oauth.v2.access API method
             oauth_response = client.oauth_v2_access(
                 client_id=SLACK_CLIENT_ID,
                 client_secret=SLACK_CLIENT_SECRET,
-                redirect_uri="https://worthy-slightly-cod.ngrok-free.app/slack/success",
                 code=request.args["code"]
             )
+            breakpoint()
             installed_enterprise = oauth_response.get("enterprise") or {}
             is_enterprise_install = oauth_response.get("is_enterprise_install")
             installed_team = oauth_response.get("team") or {}
             installer = oauth_response.get("authed_user") or {}
             incoming_webhook = oauth_response.get("incoming_webhook") or {}
             bot_token = oauth_response.get("access_token")
-            # NOTE: oauth.v2.access doesn't include bot_id in response
+    #         # NOTE: oauth.v2.access doesn't include bot_id in response
             bot_id = None
             enterprise_url = None
             if bot_token is not None:
@@ -226,13 +235,19 @@ def slack_oauth():
                 token_type=oauth_response.get("token_type"),
             )
             print(installation)
+            breakpoint()
+    #         # Store the installation
+    #         installation_store.save(installation)
 
-            # Store the installation
-            installation_store.save(installation)
+    #         return "Thanks for installing this app!"
+    #     else:
+    #         return make_response(f"Try the installation again (the state value is already expired)", 400)
 
-            return "Thanks for installing this app!"
-        else:
-            return make_response(f"Try the installation again (the state value is already expired)", 400)
+    # error = request.args["error"] if "error" in request.args else ""
+    # return make_response(f"Something is wrong with the installation (error: {html.escape(error)})", 400)
+    return make_response(f"asdfsdafsd sdfsdaf", 200)
 
-    error = request.args["error"] if "error" in request.args else ""
-    return make_response(f"Something is wrong with the installation (error: {html.escape(error)})", 400)
+
+@flask_app.route('/slack/success')
+def success():
+    return 'it wroked'
