@@ -24,10 +24,15 @@ features:
       should_escape: true
 oauth_config:
   redirect_urls:
-    - https://worthy-slightly-cod.ngrok-free.app/redirect
+    - https://worthy-slightly-cod.ngrok-free.app/slack/oauth_redirect
   scopes:
     user:
       - admin.apps:write
+      - email
+      - search:read
+      - admin.conversations:read
+      - files:read
+      - remote_files:read
     bot:
       - app_mentions:read
       - chat:write
@@ -62,6 +67,6 @@ settings:
     is_enabled: true
     request_url: https://worthy-slightly-cod.ngrok-free.app/interactive-endpoint
     message_menu_options_url: https://worthy-slightly-cod.ngrok-free.app/options-load-endpoint
-  org_deploy_enabled: false
+  org_deploy_enabled: true
   socket_mode_enabled: false
   token_rotation_enabled: true
